@@ -1,0 +1,265 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+LOGFILE="${DIR}/build.log"
+CC="gcc"
+LDFLAGS="-lnet -lpcap"
+CFLAGS="-g -O2 -D_BSD_SOURCE -DHAVE_SOCKADDR_SA_LEN -DLIBNET_BSDISH_OS\
+  -DLIBNET_BSD_BYTE_SWAP"
+LIBPCAP="/usr/local/opt/libpcap"
+LIBNET="/usr/local/opt/libnet"
+SRCS="arpspoof.c arp.c"
+BIN_PREFIX=
+
+copy(){
+  agree=""
+
+  # Print copy information
+  cat <<'COPY'
+
+macOS build script for arpspoof of dsniff
+
+Copyright (c) 2017 Marcus Zhou <other.marcus@icloud.com>
+
+  Binaries compiled by this script should be used under the restrictions
+  of local laws. The redistributor of the sources under this directory
+  will not take any responsibilities on the consequences caused by the end
+  users nor any other redistributors.
+
+arpspoof
+
+Redirect packets from a target host (or from all hosts) intended for
+another host on the LAN to ourselves.
+
+Copyright (c) 1999, 2000 Dug Song <dugsong@monkey.org>
+All rights reserved, all wrongs reversed.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+  3. The name of author may not be used to endorse or promote products
+     derived from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+COPY
+
+  printf "[*] I agree to the terms and conditions: (yes/no) "
+
+  read agree
+  if [ ! "$agree" == "yes" ] && [ ! "$agree" == "y" ]; then
+    echo "[!] You must agree to continue using this script"
+    exit 1
+  fi
+}
+
+b_log(){
+  echo "$(date) $1" >> $LOGFILE
+}
+
+log(){
+  if [ ! -z "$2" ]; then
+    echo "[$2] $1"
+  else
+    echo "[*] $1"
+  fi
+  b_log $1
+}
+
+usage(){
+  cat <<USAGE
+
+macOS build script for arpspoof of dsniff
+
+Copyright (c) 2017 Marcus Zhou <other.marcus@icloud.com>
+
+  Binaries compiled by this script should be used under the restrictions
+  of local laws. The redistributor of the sources under this directory
+  will not take any responsibilities on the consequences caused by the end
+  users nor any other redistributors.
+
+Usage: $0 <build|help|install|uninstall>
+
+  build [cc]          Compile all the sources with gcc or given [cc], the
+                      script will try to install all the dependencies using
+                      Homebrew
+  help                Print available options
+  install [place]     Install the compiled binaries to /usr/local/bin or
+                      the given [place] directory
+  uninstall           Uninstall the compiled binaries
+
+USAGE
+}
+
+build_deps(){
+  hb_cli=$(which brew)
+  if [ -z "$hb_cli" ]; then
+    log "Unable to locate Homebrew" "!"
+    log "The script is using Homebrew to install all the dependencies"
+    log "Please follow the instruction on http://brew.sh to install Homebrew"
+    exit 1
+  fi
+  log "Updating Homebrew..."
+  "$hb_cli" "update" >> $LOGFILE 2>&1 0>&1
+  log "Searching for dependencies..."
+  if [ ! -d "$LIBPCAP" ]; then
+    log "Installing libpcap..."
+    "$hb_cli" "install" "homebrew/dupes/libpcap" >> $LOGFILE 2>&1 0>&1
+    if [ $? -ne 0 ] || [ ! -d "$LIBPCAP" ]; then
+      log "Unable to install libpcap, check the $LOGFILE for more information"
+      exit 1
+    fi
+  fi
+  if [ ! -d "$LIBNET" ]; then
+    log "Installing libnet..."
+    "$hb_cli" "install" "libnet" >> $LOGFILE 2>&1 0>&1
+    if [ $? -ne 0 ] || [ ! -d "$LIBNET" ]; then
+      log "Unable to install libnet, check the $LOGFILE for more information"
+      exit 1
+    fi
+  fi
+}
+
+compile(){
+  log "Compiling..."
+
+  b_log "Using CC: ${CC}"
+  b_log "CFLAGS: ${CFLAGS}"
+  b_log "LDFLAGS: ${LDFLAGS}"
+  b_log "LIBPCAP: ${LIBPCAP}"
+  b_log "LIBNET: ${LIBNET}"
+  b_log "Source Files: ${SRCS}"
+
+  ${CC} ${CFLAGS} "-I${LIBPCAP}/include" "-I${LIBNET}/include" ${SRCS} \
+    "-L${LIBPCAP}/lib" "-L${LIBNET}/lib" ${LDFLAGS} -o arpspoof >> $LOGFILE \
+    2>&1 0>&1
+  res=$?
+
+  log "Cleaning up..."
+  rm -rf *dSYM
+
+  if [ $res -eq 0 ]; then
+    log "Succeed, now run '$0 install' to install the compiled executables"
+  else
+    log "Compile unsuccessful. Compiler returns: $res" "!"
+    exit 1
+  fi
+}
+
+install(){
+  cat <<'COPY'
+
+macOS build script for arpspoof of dsniff
+
+Copyright (c) 2017 Marcus Zhou <other.marcus@icloud.com>
+
+  Binaries compiled by this script should be used under the restrictions
+  of local laws. The redistributor of the sources under this directory
+  will not take any responsibilities on the consequences caused by the end
+  users nor any other redistributors.
+
+By running this script, you agree to the terms and conditions stated.
+
+COPY
+  log "Installing..."
+  if [ ! -z "$BIN_PREFIX" ]; then
+    log "Installing to $BIN_PREFIX..."
+    cp arpspoof "$BIN_PREFIX/arpspoof" >> $LOGFILE 2>&1 0>&1
+    if [ $? -eq 0 ]; then
+      echo "$BIN_PREFIX/arpspoof" >> "${DIR}/installed"
+      log "Succeed"
+    else
+      log "Unable to install, check '$LOGFILE' for more information" "!"
+    fi
+  else
+    cp arpspoof.8 /usr/local/share/man/man8 >> $LOGFILE 2>&1 0>&1 && \
+    cp arpspoof /usr/local/bin >> $LOGFILE 2>&1 0>&1
+    if [ $? -eq 0 ]; then
+      log "Succeed"
+    else
+      log "Unable to install, check '$LOGFILE' for more information" "!"
+    fi
+  fi
+}
+
+uninstall(){
+  cat <<'COPY'
+
+macOS build script for arpspoof of dsniff
+
+Copyright (c) 2017 Marcus Zhou <other.marcus@icloud.com>
+
+  Binaries compiled by this script should be used under the restrictions
+  of local laws. The redistributor of the sources under this directory
+  will not take any responsibilities on the consequences caused by the end
+  users nor any other redistributors.
+
+By running this script, you agree to the terms and conditions stated.
+
+COPY
+
+  log "Uninstalling..."
+
+  if [ -f "${DIR}/installed" ]; then
+    INSTALLED_PLACES=( $(cat "${DIR}/installed") )
+    echo > "${DIR}/installed"
+    for f in "${INSTALLED_PLACES[@]}"; do
+      log "Uninstalling $f"
+      rm -f "$f"  >> $LOGFILE 2>&1 0>&1
+      if [ $? -ne 0 ]; then
+        log "Unable to remove '$f', check '$LOGFILE' for more information" "!"
+        echo $f >> "${DIR}/installed"
+      fi
+    done
+  fi
+
+  rm -f /usr/local/share/man/man8/arpspoof.8 >> $LOGFILE 2>&1 0>&1 && \
+  rm -f /usr/local/bin/arpspoof >> $LOGFILE 2>&1 0>&1
+
+  if [ $? -eq 0 ]; then
+    log "Succeed"
+  else
+    log "Unable to uninstall, check '$LOGFILE' for more information" "!"
+  fi
+}
+
+case $1 in
+  build)
+    if [ ! -z "$2" ]; then
+      CC="$2"
+    fi
+    copy
+    build_deps
+    compile
+  ;;
+  install)
+    if [ ! -z "$2" ]; then
+      BIN_PREFIX="$2"
+    fi
+    install
+  ;;
+  uninstall)
+    uninstall
+  ;;
+  help)
+    usage
+  ;;
+  *)
+    usage
+  ;;
+esac
