@@ -1,4 +1,4 @@
-#arpspoof for macOS
+# arpspoof for macOS
 
 This repo extracts the arpspoof util from macOS fixed
 [dsniff](https://www.monkey.org/~dugsong/dsniff/) toolkit forked from [@ggreer](https://github.com/ggreer). The installing script itself is free, I
@@ -36,14 +36,14 @@ responsible to any consequences caused by using this script.
     OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-###Clone the sources
+### Clone the sources
 
 ```BASH_SOURCE
 git clone https://github.com/SuperMarcus/macos-arpspoof.git
 cd macos-arpspoof
 ```
 
-###Using the script
+### Using the script
 
 It's pretty convenient to use the `./build` script to compile and install the
 program. But first of all you should make sure that you've got your
@@ -55,7 +55,7 @@ Run the following code to install Homebrew
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
-###Compiling
+### Compiling
 
 To compile the source, execute the following code
 
@@ -70,7 +70,7 @@ compilers, pass the path of the compiler as an argument like the following
 ./build build "/usr/bin/gcc"
 ```
 
-###Installing
+### Installing
 
 The `./build` script can install the binary program and man page of the program.
 Run the following commands
@@ -88,7 +88,7 @@ want to install the program as an argument
 
 Note that if you specified the custom location, man pages will not be installed
 
-###Uninstalling
+### Uninstalling
 
 The `./build` script could help you uninstall the program when you no longer
 need it
