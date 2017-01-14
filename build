@@ -22,9 +22,9 @@ macOS build script for arpspoof of dsniff
 Copyright (c) 2017 Marcus Zhou <other.marcus@icloud.com>
 
   Binaries compiled by this script should be used under the restrictions
-  of local laws. The redistributor of the sources under this directory
-  will not take any responsibilities on the consequences caused by the end
-  users nor any other redistributors.
+  of local laws. The author of this script will not take any
+  responsibilities on the consequences caused by the end users nor any
+  other redistributors.
 
 arpspoof
 
@@ -89,9 +89,9 @@ macOS build script for arpspoof of dsniff
 Copyright (c) 2017 Marcus Zhou <other.marcus@icloud.com>
 
   Binaries compiled by this script should be used under the restrictions
-  of local laws. The redistributor of the sources under this directory
-  will not take any responsibilities on the consequences caused by the end
-  users nor any other redistributors.
+  of local laws. The author of this script will not take any
+  responsibilities on the consequences caused by the end users nor any
+  other redistributors.
 
 Usage: $0 <build|help|install|uninstall>
 
