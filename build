@@ -6,8 +6,14 @@ CC="gcc"
 LDFLAGS="-lnet -lpcap"
 CFLAGS="-g -O2 -D_BSD_SOURCE -DHAVE_SOCKADDR_SA_LEN -DLIBNET_BSDISH_OS\
   -DLIBNET_BSD_BYTE_SWAP"
-LIBPCAP="/usr/local/opt/libpcap"
-LIBNET="/usr/local/opt/libnet"
+arch=$(uname -m)
+if [ "$arch" == "x86_64" ]; then
+  LIBPCAP="/usr/local/opt/libpcap"
+  LIBNET="/usr/local/opt/libnet"
+elif [ "$arch" == "arm64" ]; then
+  LIBPCAP="/opt/homebrew/Cellar/libpcap"
+  LIBNET="/opt/homebrew/Cellar/libnet"
+fi
 SRCS="arpspoof.c arp.c"
 BIN_PREFIX=
 
@@ -119,7 +125,7 @@ build_deps(){
   log "Searching for dependencies..."
   if [ ! -d "$LIBPCAP" ]; then
     log "Installing libpcap..."
-    "$hb_cli" "install" "homebrew/dupes/libpcap" >> $LOGFILE 2>&1 0>&1
+    "$hb_cli" "install" "libpcap" >> $LOGFILE 2>&1 0>&1
     if [ $? -ne 0 ] || [ ! -d "$LIBPCAP" ]; then
       log "Unable to install libpcap, check the $LOGFILE for more information"
       exit 1
