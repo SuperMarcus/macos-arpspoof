@@ -6,11 +6,11 @@ CC="gcc"
 LDFLAGS="-lnet -lpcap"
 CFLAGS="-g -O2 -D_BSD_SOURCE -DHAVE_SOCKADDR_SA_LEN -DLIBNET_BSDISH_OS\
   -DLIBNET_BSD_BYTE_SWAP"
-arch=$(uname -m)
-if [ "$arch" == "x86_64" ]; then
+ARCH=$(uname -m)
+if [ "$ARCH" == "x86_64" ]; then
   LIBPCAP="/usr/local/opt/libpcap"
   LIBNET="/usr/local/opt/libnet"
-elif [ "$arch" == "arm64" ]; then
+elif [ "$ARCH" == "arm64" ]; then
   LIBPCAP="/opt/homebrew/Cellar/libpcap"
   LIBNET="/opt/homebrew/Cellar/libnet"
 fi
